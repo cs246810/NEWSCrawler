@@ -126,7 +126,7 @@ curl http://localhost:6800/schedule.json -d project=NEWSCrawler -d spider=w1job_
 curl http://localhost:6800/schedule.json -d project=NEWSCrawler -d spider=author_baidu
 ```
 相关截图：
-[](https://github.com/cs246810/NEWScrawler/blob/master/scrapyd_success.gif)
+![](https://github.com/cs246810/NEWScrawler/blob/master/scrapyd_success.gif)
 
 停止爬虫:
 ```shell
