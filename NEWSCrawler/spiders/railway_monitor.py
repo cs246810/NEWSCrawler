@@ -56,7 +56,7 @@ class RailwayMonitorSpider(RedisSpider):
             ri['time_end'] = bgc.find_element_by_css_selector('.cds > .color999').text
             ri['spend_time'] = bgc.find_element_by_css_selector('.ls > strong').text
 
-            nums = bgc.find_elements_by_css_selector('[ifalow_maxlength="1"')[1:-1]
+            nums = bgc.find_elements_by_css_selector('[ifalow_maxlength="1"]')
             ri['business_seat_num'] = nums[0].text
             ri['first_class_seat_num'] = nums[1].text
             ri['second_class_seat_num'] = nums[2].text
@@ -122,7 +122,7 @@ class RailwayMonitorSpider(RedisSpider):
             click_city_line_over(driver)
 
             WebDriverWait(driver, 10).until(
-                expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, '.end')),
+                expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, '#date_range > ul > li')),
                 'Wait 最后一个日期 timeout.'
             ).click()
         except TimeoutException as e:
