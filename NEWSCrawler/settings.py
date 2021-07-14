@@ -25,7 +25,7 @@ NEWSPIDER_MODULE = 'NEWSCrawler.spiders'
 # ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 1
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -96,7 +96,7 @@ DOWNLOADER_MIDDLEWARES = {
 SELENIUM_DRIVER_NAME = 'firefox'
 SELENIUM_DRIVER_EXECUTABLE_PATH = which('geckodriver')
 # SELENIUM_DRIVER_EXECUTABLE_PATH = which('chromedriver')
-SELENIUM_DRIVER_ARGUMENTS=['-headless'] #['-headless']  # '--
+SELENIUM_DRIVER_ARGUMENTS=[] #['-headless']  # '--
 '''***********************************************scrapy-selenium end*************************************************'''
 
 '''***********************************************scrapy-redis start**************************************************'''

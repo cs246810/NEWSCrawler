@@ -20,7 +20,7 @@ from scrapy_redis import get_redis
 logger = logging.getLogger('process_items')
 
 
-def process_items(image_path, upload_url, api_job_list, r, keys, timeout, limit=0, log_every=1000, wait=.1):
+def process_items(image_path, upload_url, api_job_list, api_railway_list, r, keys, timeout, limit=0, log_every=1000, wait=.1):
     limit = limit or float('inf')
     processed = 0
     while processed < limit:
@@ -39,7 +39,7 @@ def process_items(image_path, upload_url, api_job_list, r, keys, timeout, limit=
             continue
 
         try:
-            get_params(keys[0], item, image_path, source, upload_url, api_job_list)
+            get_params(keys[0], item, image_path, source, upload_url, api_job_list, api_railway_list)
         except Exception:
             continue
 
@@ -47,7 +47,7 @@ def process_items(image_path, upload_url, api_job_list, r, keys, timeout, limit=
         if processed % log_every == 0:
             logger.info("Processed %s items", processed)
 
-def get_params(key, item, image_path, source, upload_url, api_job_list):
+def get_params(key, item, image_path, source, upload_url, api_job_list, api_railway_list):
     if key == 'author_baidu:items':
         try:
             news_from_id = item['news_from_id']
@@ -71,6 +71,11 @@ def get_params(key, item, image_path, source, upload_url, api_job_list):
         except KeyError:
             logger.exception("[%s] Failed to process job_search item:\n%r",
                              source, pprint.pformat(item))
+    elif key == 'railway_monitor:items':
+        try:
+            save_railway(api_railway_list, **item)
+        except Exception as e:
+            pass
 
 def save_news(image_path, base64_image, news_from_id, title, url, upload_url):
     try:
@@ -114,6 +119,18 @@ def save_job_search(name, url, company_name, pub_date, pay, job_search_id, api_j
     except Exception as e:
         print(e)
 
+def save_railway(api, **kwargs):
+    try:
+        kwargs['railway_monitor'] = kwargs['railway_monitor_id']
+        del kwargs['railway_monitor_id']
+        r = requests.post(api, data=kwargs)
+        jd = r.json()
+        r.close()
+        logger.debug('api结果 %s' % pprint.pformat(jd))
+    except Exception as e:
+        print(e)
+        pprint.pprint(kwargs)
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('key', help="Redis key where items are stored")
@@ -127,6 +144,7 @@ def main():
     parser.add_argument('--image_path', default=os.path.join(os.getcwd(), 'images'))
     parser.add_argument('--upload_url', default='http://localhost:8000/api/v1/news/')
     parser.add_argument('--api_job_list', default='http://localhost:8000/api/v1/jobs/')
+    parser.add_argument('--api_railway_list', default='http://localhost:8000/api/v1/railways/')
 
     args = parser.parse_args()
 
@@ -134,6 +152,7 @@ def main():
     image_path = args.image_path
     upload_url = args.upload_url
     api_job_list = args.api_job_list
+    api_railway_list = args.api_railway_list
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
@@ -147,7 +166,7 @@ def main():
         'log_every': args.progress_every,
     }
     try:
-        process_items(image_path, upload_url, api_job_list, r, **kwargs)
+        process_items(image_path, upload_url, api_job_list, api_railway_list, r, **kwargs)
         retcode = 0  # ok
     except KeyboardInterrupt:
         retcode = 0  # ok
