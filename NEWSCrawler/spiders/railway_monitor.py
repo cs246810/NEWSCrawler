@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 
 from scrapy_selenium.http import SeleniumRequest
 from scrapy_redis.spiders import RedisSpider
@@ -65,24 +66,32 @@ class RailwayMonitorSpider(RedisSpider):
             ri['harder_sleeper_second_class_num'] = nums[6].text
             ri['soft_seat_num'] = nums[7].text
             ri['harder_seat_num'] = nums[8].text
-            nums[0].click()
 
-            pays = WebDriverWait(driver, 10).until(
-                expected_conditions.visibility_of_all_elements_located((By.CSS_SELECTOR, '[datatran*="%s"] > td' % ri['train_number'])),
-                'Wait 价格展开 timeout'
-            )[1:-1]
-            ri['business_seat_pay'] = pays[0].text
-            ri['first_class_seat_pay'] = pays[1].text
-            ri['second_class_seat_pay'] = pays[2].text
-            ri['superior_soft_sleeper_pay'] = pays[3].text
-            ri['soft_sleeper_first_class_pay'] = pays[4].text
-            ri['dynamic_sleeper_pay'] = pays[5].text
-            ri['harder_sleeper_second_class_pay'] = pays[6].text
-            ri['soft_seat_pay'] = pays[7].text
-            ri['harder_seat_pay'] = pays[8].text
+            pays = None
+            for loop in range(10):
+                nums[0].click()
+                try:
+                    pays = WebDriverWait(driver, 10).until(
+                        expected_conditions.visibility_of_all_elements_located((By.CSS_SELECTOR, '[datatran*="%s"] > td' % ri['train_number'])),
+                        'Wait 价格展开 timeout'
+                    )[1:-1]
+                    break
+                except TimeoutException:
+                    pass
+            if pays:
+                ri['business_seat_pay'] = pays[0].text
+                ri['first_class_seat_pay'] = pays[1].text
+                ri['second_class_seat_pay'] = pays[2].text
+                ri['superior_soft_sleeper_pay'] = pays[3].text
+                ri['soft_sleeper_first_class_pay'] = pays[4].text
+                ri['dynamic_sleeper_pay'] = pays[5].text
+                ri['harder_sleeper_second_class_pay'] = pays[6].text
+                ri['soft_seat_pay'] = pays[7].text
+                ri['harder_seat_pay'] = pays[8].text
 
-            ri['railway_monitor_id'] = self.railway_monitor_id
-            yield ri
+                ri['railway_monitor_id'] = self.railway_monitor_id
+                yield ri
+            time.sleep(3)
 
     def query(self, driver):
         click_city_line_over = lambda driver: WebDriverWait(driver, 10).until(
